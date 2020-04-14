@@ -106,12 +106,31 @@ static uint8_t shiftIn(volatile uint8_t *port,
   return x ;
 }
 
-static void show(const uint8_t value)
+class Display
 {
-  PORTB = PORTB & 0b11110111; //set ce low
-  shiftOut(&PORTB,numberLookup[value],true);
-  PORTB = PORTB | 0b00001000; //set ce high
-}
+private:
+  volatile uint8_t * spi_port_ ;
+  uint8_t ce_mask_high_ ;
+  uint8_t ce_mask_low_ ;
+public:
+  Display(volatile uint8_t *port ,
+          const uint8_t ce_pin )
+          : spi_port_( port ) ,
+            ce_mask_high_( 1 << ce_pin ) ,
+            ce_mask_low_( ~ce_mask_high_ ){}
+
+  void raw(const uint8_t value) const
+  {
+    PORTB = *spi_port_ & ce_mask_low_; //set ce low
+    shiftOut(spi_port_,value,true);
+    PORTB = *spi_port_ | ce_mask_high_; //set ce high
+  }
+
+  void show(const uint8_t value) const
+  {
+    raw(numberLookup[value]);
+  }
+};
 
 static uint8_t readButtons()
 {
@@ -139,12 +158,31 @@ int main()
   //       43210ssk
   //            oi
   DDRB = 0b11111011;
+  Display disp(&PORTB,3);
+  disp.raw(0x00);
 
   PORTB = 0 ;
   while(true)
   {
-    show(readButtons() % 16);
-    _delay_ms(1000);
+    const uint8_t buttons = readButtons() ;
+    if( buttons == 0b10000000 )
+    {
+      for(uint8_t i=0;i<16;++i)
+      {
+        disp.show(i);
+        _delay_ms(200);
+      }
+      disp.raw(0x00);
+    }
+    else if( buttons == 0b01000000 )
+    {
+      for(uint8_t i=0;i<16;++i)
+      {
+        disp.show(15-i);
+        _delay_ms(200);
+      }
+      disp.raw(0x00);
+    }
   }
   return 0;
 }
