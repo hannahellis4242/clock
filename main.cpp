@@ -26,16 +26,6 @@ void displayTime(const RTCData & td , const Display & disp )
   disp.raw(0);
 }
 
-void debug_disp(const uint8_t data ,volatile uint8_t * port,const uint8_t ce_pin)
-{
-  const uint8_t mask_high = 1 << ce_pin ;
-  const uint8_t mask_low = ~mask_high ;
-
-  *port = *port & mask_low ; //ce_low
-  shiftOut(port,data,true);
-  *port = *port | mask_high ; //ce high
-}
-
 int main()
 {
   //       cccccmmc
@@ -47,6 +37,7 @@ int main()
   const auto disp = Display(&PORTB,3);
   const auto buttons = Buttons(&PORTB,&PINB,4);
   const auto rtc = RealTimeClock(&PORTB,&PINB,5);
+  const auto debug_disp = Display(&PORTB,6);
   disp.raw(0x00);
   while(true)
   {
@@ -77,31 +68,28 @@ int main()
     else if( value == 0x02 )
     {
       uint8_t value = 1;
-      do
+      while( value != 0 )
       {
-        debug_disp(value,&PORTB,6);
+        debug_disp.raw(value);
         _delay_ms(500);
         value = value << 1;
-      }while( value != 0 );
-      debug_disp(0,&PORTB,6);
+      }
+      debug_disp.raw(0);
     }
     else if( value == 0x04 )
     {
-      debug_disp(rtc.getSecondsByte(),&PORTB,6);
-      //_delay_ms(2000);
-      debug_disp(0,&PORTB,6);
+      debug_disp.raw(rtc.getSecondsByte());
+      debug_disp.raw(0);
     }
     else if( value == 0x08 )
     {
-      debug_disp(rtc.getMinutesByte(),&PORTB,6);
-      //_delay_ms(2000);
-      debug_disp(0,&PORTB,6);
+      debug_disp.raw(rtc.getMinutesByte());
+      debug_disp.raw(0);
     }
     else if( value == 0x10 )
     {
-      debug_disp(rtc.getHoursByte(),&PORTB,6);
-      //_delay_ms(2000);
-      debug_disp(0,&PORTB,6);
+      debug_disp.raw(rtc.getHoursByte());
+      debug_disp.raw(0);
     }
   }
   return 0;
