@@ -3,35 +3,7 @@
 
 #include "Display.h"
 #include "spi.h"
-
-class BCDNumber
-{
-  private:
-    uint8_t data_ ;
-  public:
-    BCDNumber( const uint8_t & data = 0 )
-    : data_( data ) {}
-
-    const uint8_t & raw() const
-    {
-      return data_ ;
-    }
-
-    uint8_t units() const
-    {
-      return data_ & 0b00001111 ;
-    }
-
-    uint8_t tens() const
-    {
-      return ( data_ & 0b11110000 ) >> 4 ;
-    }
-
-    uint8_t asByte() const
-    {
-      return units() + 10 * tens() ;
-    }
-};
+#include "BCDNumber.h"
 
 class RTCData
 {
@@ -97,6 +69,83 @@ public:
     *out_port_ = *out_port_ & ce_mask_low_ ;
     return RTCData( xs ) ;
   }
+
+  uint8_t read_seconds_byte() const
+  {
+    //start set ce high
+    *out_port_ = *out_port_ | ce_mask_high_ ;
+    //write out instruction, in this case read
+    shiftOut(out_port_,0x00,true);
+    const uint8_t seconds = shiftIn(out_port_ , in_port_ , true) ;
+    *out_port_ = *out_port_ & ce_mask_low_ ;
+    return seconds ;
+  }
+
+  uint8_t read_minutes_byte() const
+  {
+    //start set ce high
+    *out_port_ = *out_port_ | ce_mask_high_ ;
+    //write out instruction, in this case read
+    shiftOut(out_port_,0x01,true);
+    const uint8_t minutes = shiftIn(out_port_ , in_port_ , true) ;
+    *out_port_ = *out_port_ & ce_mask_low_ ;
+    return minutes ;
+  }
+
+  uint8_t read_hours_byte() const
+  {
+    //start set ce high
+    *out_port_ = *out_port_ | ce_mask_high_ ;
+    //write out instruction, in this case read
+    shiftOut(out_port_,0x02,true);
+    const uint8_t hours = shiftIn(out_port_ , in_port_ , true) ;
+    *out_port_ = *out_port_ & ce_mask_low_ ;
+    return hours ;
+  }
+
+  uint8_t read_day_byte() const
+  {
+    //start set ce high
+    *out_port_ = *out_port_ | ce_mask_high_ ;
+    //write out instruction, in this case read
+    shiftOut(out_port_,0x03,true);
+    const uint8_t day = shiftIn(out_port_ , in_port_ , true) ;
+    *out_port_ = *out_port_ & ce_mask_low_ ;
+    return day ;
+  }
+
+  uint8_t read_date_byte() const
+  {
+    //start set ce high
+    *out_port_ = *out_port_ | ce_mask_high_ ;
+    //write out instruction, in this case read
+    shiftOut(out_port_,0x04,true);
+    const uint8_t date = shiftIn(out_port_ , in_port_ , true) ;
+    *out_port_ = *out_port_ & ce_mask_low_ ;
+    return date ;
+  }
+
+  uint8_t read_month_byte() const
+  {
+    //start set ce high
+    *out_port_ = *out_port_ | ce_mask_high_ ;
+    //write out instruction, in this case read
+    shiftOut(out_port_,0x05,true);
+    const uint8_t month = shiftIn(out_port_ , in_port_ , true) ;
+    *out_port_ = *out_port_ & ce_mask_low_ ;
+    return month ;
+  }
+
+  uint8_t read_year_byte() const
+  {
+    //start set ce high
+    *out_port_ = *out_port_ | ce_mask_high_ ;
+    //write out instruction, in this case read
+    shiftOut(out_port_,0x06,true);
+    const uint8_t year = shiftIn(out_port_ , in_port_ , true) ;
+    *out_port_ = *out_port_ & ce_mask_low_ ;
+    return year ;
+  }
 };
 
 class Buttons
@@ -150,6 +199,16 @@ void displayTime(const RTCData & td , const Display & disp )
   disp.raw(0);
 }
 
+void debug_disp(const uint8_t data ,volatile uint8_t * port,const uint8_t ce_pin)
+{
+  const uint8_t mask_high = 1 << ce_pin ;
+  const uint8_t mask_low = ~mask_high ;
+
+  *port = *port & mask_low ; //ce_low
+  shiftOut(port,data,true);
+  *port = *port | mask_high ; //ce high
+}
+
 int main()
 {
   //       cccccmmc
@@ -165,7 +224,7 @@ int main()
   while(true)
   {
     const uint8_t value = buttons.read() ;
-    if( value == 0b10000000 )
+    if( value == 0x80 )
     {
       for(uint8_t i=0;i<16;++i)
       {
@@ -174,7 +233,7 @@ int main()
       }
       disp.raw(0x00);
     }
-    else if( value == 0b01000000 )
+    else if( value == 0x40 )
     {
       for(uint8_t i=0;i<16;++i)
       {
@@ -183,10 +242,50 @@ int main()
       }
       disp.raw(0x00);
     }
-    else if( value == 0b00000001 )
+    else if( value == 0x01 )
     {
       displayTime(rtc.read(),disp);
       disp.raw(0x00);
+    }
+    else if( value == 0x02 )
+    {
+      uint8_t value = 1;
+      do
+      {
+        debug_disp(value,&PORTB,6);
+        _delay_ms(500);
+        value = value << 1;
+      }while( value != 0 );
+      debug_disp(0,&PORTB,6);
+    }
+    /*else if( value == 0x04 )
+    {
+      uint8_t value = 0;
+      do
+      {
+        debug_disp(value,&PORTB,6);
+        _delay_ms(100);
+        value++;
+      }while( value != 0 );
+      debug_disp(0,&PORTB,6);
+    }*/
+    else if( value == 0x04 )
+    {
+      debug_disp(rtc.read_seconds_byte(),&PORTB,6);
+      //_delay_ms(2000);
+      debug_disp(0,&PORTB,6);
+    }
+    else if( value == 0x08 )
+    {
+      debug_disp(rtc.read_minutes_byte(),&PORTB,6);
+      //_delay_ms(2000);
+      debug_disp(0,&PORTB,6);
+    }
+    else if( value == 0x10 )
+    {
+      debug_disp(rtc.read_hours_byte(),&PORTB,6);
+      //_delay_ms(2000);
+      debug_disp(0,&PORTB,6);
     }
   }
   return 0;

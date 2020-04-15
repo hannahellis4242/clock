@@ -18,9 +18,9 @@ void shiftOut( volatile uint8_t *port,
   uint8_t (*bitShiftFn)(const uint8_t) = msb_first ? bit_shift_down_one : bit_shift_up_one ;
   while( mask )
   {
+    *port = *port & 0b11111110 ; //set clock low
     *port = ( ( mask & data ) != 0 ) ? ( *port | 0b00000010 ) : ( *port & 0b11111101 ); //set mosi high or low
     *port = *port | 0b00000001 ; // set clock high
-    *port = *port & 0b11111110 ; //set clock low
     mask = bitShiftFn( mask ) ; //move mask along
   }
 }
@@ -34,9 +34,9 @@ uint8_t shiftIn(volatile uint8_t *port,
   uint8_t x = 0 ;
   while( mask )
   {
+    *port = *port & 0b11111110 ; //set clock low
     x = ( ( 0b00000100 & *port_in ) != 0 ) ? ( x | mask ) : x ; //set mosi high or low
     *port = *port | 0b00000001 ; // set clock high
-    *port = *port & 0b11111110 ; //set clock low
     mask = bitShiftFn( mask ) ; //move mask along
   }
   return x ;
