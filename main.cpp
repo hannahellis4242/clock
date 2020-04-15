@@ -51,7 +51,7 @@ int main()
       }
       disp.raw(0x00);
     }
-    else if( value == 0x40 )
+    /*else if( value == 0x40 )
     {
       for(uint8_t i=0;i<16;++i)
       {
@@ -59,7 +59,7 @@ int main()
         _delay_ms(200);
       }
       disp.raw(0x00);
-    }
+    }*/
     else if( value == 0x01 )
     {
       displayTime(rtc.read(),disp);
@@ -89,6 +89,19 @@ int main()
     else if( value == 0x10 )
     {
       debug_disp.raw(rtc.getHoursByte());
+      debug_disp.raw(0);
+    }
+    else if( value == 0x20 )
+    {
+      rtc.write() ;
+      _delay_ms(1000);
+      debug_disp.raw(0xff);
+      _delay_ms(100);
+      debug_disp.raw(0x00);
+    }
+    else if( value == 0x40 )
+    {
+      debug_disp.raw(rtc.getControlRegister());
       debug_disp.raw(0);
     }
   }

@@ -9,7 +9,7 @@ RTCData RealTimeClock::read() const
   //start set ce high
   *out_port_ = *out_port_ | ce_mask_high_ ;
   //write out instruction, in this case read
-  shiftOut(out_port_,0b00000000,true);
+  shiftOut(out_port_,0x00,true);
   uint8_t xs[7]={0,0,0,0,0,0,0};
   for(unsigned int i = 0 ; i < 7 ; ++i)
   {
@@ -18,6 +18,28 @@ RTCData RealTimeClock::read() const
   //stop set ce low
   *out_port_ = *out_port_ & ce_mask_low_ ;
   return RTCData( xs ) ;
+}
+
+void RealTimeClock::write( /*const RTCData & data*/ ) const
+{
+  //as a first pass lets see if we can reset the time
+  const uint8_t contRegs = getControlRegister() ;
+  setControlRegister( contRegs & 0b010000 );
+
+  //start set ce high
+  *out_port_ = *out_port_ | ce_mask_high_ ;
+  //write out instruction, in this case write
+  shiftOut(out_port_,0x80,true);
+  uint8_t xs[7]={0,0,0,0,0,0,0};
+  for(unsigned int i = 0 ; i < 7 ; ++i)
+  {
+    shiftOut(out_port_ , xs[i] , true) ;
+  }
+  //stop set ce low
+  *out_port_ = *out_port_ & ce_mask_low_ ;
+
+  //set the controlRegister back again
+  setControlRegister( contRegs ) ;
 }
 
 uint8_t RealTimeClock::getSecondsByte() const
@@ -95,4 +117,27 @@ uint8_t RealTimeClock::getYearByte() const
   const uint8_t year = shiftIn(out_port_ , in_port_ , true) ;
   *out_port_ = *out_port_ & ce_mask_low_ ;
   return year ;
+}
+
+uint8_t RealTimeClock::getControlRegister()const
+{
+  //start set ce high
+  *out_port_ = *out_port_ | ce_mask_high_ ;
+  //write out instruction, in this case read
+  shiftOut(out_port_,0x0f,true);
+  const uint8_t x = shiftIn(out_port_ , in_port_ , true) ;
+  *out_port_ = *out_port_ & ce_mask_low_ ;
+  return x ;
+}
+
+void RealTimeClock::setControlRegister( const uint8_t value )const
+{
+  //start set ce high
+  *out_port_ = *out_port_ | ce_mask_high_ ;
+  //write out instruction, in this case read
+  shiftOut(out_port_,0x8f,true);
+  //set the value
+  shiftOut(out_port_ , value , true) ;
+  //end set ce low
+  *out_port_ = *out_port_ & ce_mask_low_ ;
 }
