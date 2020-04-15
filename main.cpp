@@ -106,7 +106,7 @@ class BCDNumber
       return ( data_ & 0b11110000 ) >> 4 ;
     }
 
-    uint8_t asuint8_t() const
+    uint8_t asByte() const
     {
       return units() + 10 * tens() ;
     }
@@ -118,7 +118,7 @@ class RTCData
     BCDNumber seconds ;
     BCDNumber minutes ;
     BCDNumber hours ;
-    BCDNumber hoursRaw ;
+    uint8_t hoursRaw ;
     bool twentyFourHour ;
     bool pm ;
     uint8_t day ;
@@ -135,7 +135,6 @@ class RTCData
       month( xs[5] ),
       year( xs[6] )
     {
-
       twentyFourHour = (0b01000000 & xs[2] ) != 0 ;
       if( twentyFourHour )
       {
@@ -145,9 +144,7 @@ class RTCData
       {
         pm = ( 0b00100000 & xs[2] ) != 0 ;
       }
-      const uint8_t hourBCD = twentyFourHour ?
-                        xs[2] & 0b00111111 :
-                        xs[2] & 0b00011111 ;
+      const uint8_t hourBCD = xs[2] & (twentyFourHour ? 0b00111111 : 0b00011111 );
       hours = BCDNumber( hourBCD ) ;
     }
 };
