@@ -3,44 +3,7 @@
 
 #include "Display.h"
 #include "spi.h"
-#include "BCDNumber.h"
-
-class RTCData
-{
-  public:
-    BCDNumber seconds ;
-    BCDNumber minutes ;
-    BCDNumber hours ;
-    uint8_t hoursRaw ;
-    bool twentyFourHour ;
-    bool pm ;
-    uint8_t day ;
-    BCDNumber date ;
-    BCDNumber month ;
-    BCDNumber year ;
-
-    RTCData(const uint8_t (&xs)[7])
-    : seconds( xs[0] ) ,
-      minutes( xs[1] ) ,
-      hoursRaw( xs[2] ),
-      day( xs[3] ) ,
-      date( xs[4] ) ,
-      month( xs[5] ),
-      year( xs[6] )
-    {
-      twentyFourHour = (0b01000000 & xs[2] ) != 0 ;
-      if( twentyFourHour )
-      {
-        pm = false ;
-      }
-      else
-      {
-        pm = ( 0b00100000 & xs[2] ) != 0 ;
-      }
-      const uint8_t hourBCD = xs[2] & (twentyFourHour ? 0b00111111 : 0b00011111 );
-      hours = BCDNumber( hourBCD ) ;
-    }
-};
+#include "RTCData.h"
 
 class RealTimeClock
 {
@@ -183,18 +146,18 @@ public:
 void displayTime(const RTCData & td , const Display & disp )
 {
   disp.raw(0);
-  disp.show(td.hours.tens());
+  disp.show(td.hours().tens());
   _delay_ms(500);
   disp.raw(0);
-  disp.show(td.hours.units());
+  disp.show(td.hours().units());
   _delay_ms(500);
   disp.raw(0);
   _delay_ms(1000);
   disp.raw(0);
-  disp.show(td.minutes.tens());
+  disp.show(td.minutes().tens());
   _delay_ms(500);
   disp.raw(0);
-  disp.show(td.minutes.units());
+  disp.show(td.minutes().units());
   _delay_ms(1000);
   disp.raw(0);
 }
@@ -258,17 +221,6 @@ int main()
       }while( value != 0 );
       debug_disp(0,&PORTB,6);
     }
-    /*else if( value == 0x04 )
-    {
-      uint8_t value = 0;
-      do
-      {
-        debug_disp(value,&PORTB,6);
-        _delay_ms(100);
-        value++;
-      }while( value != 0 );
-      debug_disp(0,&PORTB,6);
-    }*/
     else if( value == 0x04 )
     {
       debug_disp(rtc.read_seconds_byte(),&PORTB,6);
