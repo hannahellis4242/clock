@@ -29,9 +29,9 @@ Display::Display(volatile uint8_t *port ,
 
 void Display::raw(const uint8_t value) const
 {
-  PORTB = *spi_port_ & ce_mask_low_; //set ce low
+  *spi_port_ = *spi_port_ & ce_mask_low_; //set ce low
   shiftOut(spi_port_,value,true);
-  PORTB = *spi_port_ | ce_mask_high_; //set ce high
+  *spi_port_ = *spi_port_ | ce_mask_high_; //set ce high
 }
 
 void Display::show(const uint8_t value) const

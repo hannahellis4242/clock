@@ -1,5 +1,8 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
+
+#include <stdint.h>
+
 class Display
 {
 private:

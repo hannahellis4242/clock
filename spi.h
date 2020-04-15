@@ -1,6 +1,8 @@
 #ifndef SPI_H
 #define SPI_H
 
+#include <stdint.h>
+
 //Some fixed rules about an spi port
 //We use just the lower nibble for data.
 //clk is pin 0 of the port
