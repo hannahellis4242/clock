@@ -22,3 +22,9 @@ main.elf: main.o Display.o spi.o BCDNumber.o RTCData.o RealTimeClock.o Buttons.o
 
 upload: main.hex
 	avrdude -p $(MCU) -c $(PROGRAMMER_TYPE) -P $(PORT) -b $(BAUD) -U flash:w:main.hex
+
+size : main.elf
+	avr-size -C --mcu=$(MCU) main.elf
+
+hex_size : main.hex
+	avr-size main.hex
