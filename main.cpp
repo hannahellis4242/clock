@@ -2,40 +2,10 @@
 #include <util/delay.h>
 
 #include "Display.h"
-#include "spi.h"
 #include "RealTimeClock.h"
+#include "Buttons.h"
 
-class Buttons
-{
-private:
-  volatile uint8_t * out_port_ ;
-  const volatile uint8_t * in_port_ ;
-  uint8_t ce_mask_high_ ;
-  uint8_t ce_mask_low_ ;
-
-public:
-  Buttons(volatile uint8_t * out_port , const volatile uint8_t * in_port , const uint8_t ce_pin )
-  : out_port_( out_port ) , in_port_(in_port) , ce_mask_high_( 1 << ce_pin ) , ce_mask_low_( ~ce_mask_high_ ){}
-
-  uint8_t read() const
-  {
-    //to enable the chip drop chip enable low
-    *out_port_ = *out_port_ & ce_mask_low_; //set ce low
-    //to store the current state of the pins, send mosi low then clock once
-    *out_port_ = *out_port_ & 0b11101101; //set mosi low
-    //flash clock up to load the memory
-    *out_port_ = *out_port_ | 0b00000001 ; // set clock high
-    *out_port_ = *out_port_ & 0b11111110 ; // set clock low
-    //data is now loaded for shifing out
-    //put into shift out mode
-    *out_port_ = *out_port_ | 0b00000010 ; //set mosi high
-    //now shift in
-    const uint8_t x = shiftIn(out_port_,in_port_);
-    //stop
-    *out_port_ = *out_port_ | ce_mask_high_;
-    return x ;
-  }
-};
+#include "spi.h"
 
 void displayTime(const RTCData & td , const Display & disp )
 {

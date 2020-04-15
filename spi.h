@@ -16,4 +16,14 @@ void shiftOut( volatile uint8_t *port,
 uint8_t shiftIn(volatile uint8_t *port,
                 const volatile uint8_t *port_in ,
                 const bool msb_first = true ) ;
+
+static const uint8_t clk_high = 0x02;
+static const uint8_t clk_low = ~clk_high ;
+
+static const uint8_t mosi_high = 0x02;
+static const uint8_t mosi_low = ~mosi_high ;
+
+static const uint8_t miso_high = 0x04;
+static const uint8_t miso_low = ~miso_high ;
+
 #endif
