@@ -3,6 +3,7 @@
 
 #include "Display.h"
 #include "RealTimeClock.h"
+#include "RTCData.h"
 #include "Buttons.h"
 
 #include "spi.h"
@@ -62,7 +63,7 @@ int main()
     }*/
     else if( value == 0x01 )
     {
-      displayTime(rtc.read(),disp);
+      displayTime(RTCData(rtc.read()),disp);
       disp.raw(0x00);
     }
     else if( value == 0x02 )
@@ -93,7 +94,7 @@ int main()
     }
     else if( value == 0x20 )
     {
-      rtc.write() ;
+      rtc.write( Array< uint8_t , 7 >() ) ;
       _delay_ms(1000);
       debug_disp.raw(0xff);
       _delay_ms(100);

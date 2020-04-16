@@ -1,7 +1,7 @@
 #ifndef REALTIMECLOCK_H
 #define REALTIMECLOCK_H
 
-#include "RTCData.h"
+#include "Array.h"
 
 class RealTimeClock
 {
@@ -14,8 +14,8 @@ private:
 public:
   RealTimeClock(volatile uint8_t * out_port , const volatile uint8_t * in_port , const uint8_t ce_pin ) ;
 
-  RTCData read() const;
-  void write( /*const RTCData & data*/ ) const;
+  Array< uint8_t , 7 > read() const;
+  void write( const Array< uint8_t , 7 > & data ) const;
 
   uint8_t getControlRegister()const ;
 

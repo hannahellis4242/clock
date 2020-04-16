@@ -4,23 +4,23 @@
 RealTimeClock::RealTimeClock(volatile uint8_t * out_port , const volatile uint8_t * in_port , const uint8_t ce_pin )
 : out_port_( out_port ) , in_port_(in_port) , ce_mask_high_( 1 << ce_pin ) , ce_mask_low_( ~ce_mask_high_ ){}
 
-RTCData RealTimeClock::read() const
+Array< uint8_t , 7 > RealTimeClock::read() const
 {
   //start set ce high
   *out_port_ = *out_port_ | ce_mask_high_ ;
   //write out instruction, in this case read
   shiftOut(out_port_,0x00,true);
-  uint8_t xs[7]={0,0,0,0,0,0,0};
+  Array< uint8_t , 7 > xs ;
   for(unsigned int i = 0 ; i < 7 ; ++i)
   {
     xs[i] = shiftIn(out_port_ , in_port_ , true) ;
   }
   //stop set ce low
   *out_port_ = *out_port_ & ce_mask_low_ ;
-  return RTCData( xs ) ;
+  return xs ;
 }
 
-void RealTimeClock::write( /*const RTCData & data*/ ) const
+void RealTimeClock::write( const Array< uint8_t , 7 > & data ) const
 {
   //as a first pass lets see if we can reset the time
   const uint8_t contRegs = getControlRegister() ;
@@ -30,10 +30,9 @@ void RealTimeClock::write( /*const RTCData & data*/ ) const
   *out_port_ = *out_port_ | ce_mask_high_ ;
   //write out instruction, in this case write
   shiftOut(out_port_,0x80,true);
-  uint8_t xs[7]={0,0,0,0,0,0,0};
   for(unsigned int i = 0 ; i < 7 ; ++i)
   {
-    shiftOut(out_port_ , xs[i] , true) ;
+    shiftOut(out_port_ , data[i] , true) ;
   }
   //stop set ce low
   *out_port_ = *out_port_ & ce_mask_low_ ;

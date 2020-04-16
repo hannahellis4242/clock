@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "BCDNumber.h"
+#include "Array.h"
 
 class RTCData
 {
@@ -19,6 +20,7 @@ private:
   public:
     RTCData() = default ;
     RTCData(const uint8_t (&xs)[7]);
+    RTCData(const Array<uint8_t,7> & xs);
 
     const BCDNumber & seconds() const;
     const BCDNumber & minutes() const;
@@ -31,14 +33,16 @@ private:
     const BCDNumber & month() const ;
     const BCDNumber & year() const ;
 
-    void setSeconds(const uint8_t) const ;
-    void setMinutes(const uint8_t) const ;
-    void setHours(const uint8_t) const ;
-    void setPm(const bool) const ;
-    void set24(const bool) const;
-    void setDay(const uint8_t)const;
-    void setDate(const uint8_t)const;
-    void setMonth(const uint8_t)const;
-    void setYear(const uint8_t)const;
+    void setSeconds(const uint8_t) ;
+    void setMinutes(const uint8_t) ;
+    void setHours(const uint8_t) ;
+    void setPm(const bool) ;
+    void set24(const bool);
+    void setDay(const uint8_t);
+    void setDate(const uint8_t);
+    void setMonth(const uint8_t);
+    void setYear(const uint8_t);
+
+    Array< uint8_t , 7 > convertToArray() const ;
 };
 #endif
