@@ -20,3 +20,6 @@ test : makefile.tests
 
 run_tests : makefile.tests
 	make -f makefile.tests run
+
+test_clean : makefile.tests
+	make -f makefile.tests clean
