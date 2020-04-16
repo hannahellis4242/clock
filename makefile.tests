@@ -1,0 +1,16 @@
+all : test_dir test_dir/test_BCDNumber
+
+clean :
+	rm -r test_dir
+
+test_dir :
+	mkdir test_dir
+
+test_dir/test_BCDNumber : test_dir/test_BCDNumber.o test_dir/BCDNumber.o
+	g++ -std=c++0x $^ -o $@
+
+test_dir/%.o : %.cpp
+	g++ -std=c++0x -c $< -o $@
+
+run : test_dir test_dir/test_BCDNumber
+	test_dir/test_BCDNumber

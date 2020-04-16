@@ -1,30 +1,25 @@
-MCU   = atmega328p
-F_CPU = 1000000
-BAUD  = 19200
+all : makefile.avr makefile.tests
+	make -f makefile.avr
+	make -f makefile.tests
 
-PROGRAMMER_TYPE = avrisp
+clean : makefile.avr makefile.tests
+	make -f makefile.avr clean
+	make -f makefile.tests clean
 
-PORT = /dev/cu.usbmodem14101
+upload : makefile.avr
+	make -f upload
 
-all: main.hex
+size : makefile.avr
+	make -f makefile.avr size
 
-clean:
-	rm *.o main.elf main.hex
+hex_size : makefile.avr
+		make -f makefile.avr hex_size
 
-main.hex: main.elf
-	avr-objcopy -j .text -j .data -O ihex main.elf main.hex
+test : makefile.tests
+	make -f makefile.tests
 
-main.elf: main.o Display.o spi.o BCDNumber.o RTCData.o RealTimeClock.o Buttons.o
-	avr-g++ -std=c++0x -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -Os $^ -o main.elf
+run_tests : makefile.tests
+	make -f makefile.tests run
 
-%.o: %.cpp
-	avr-g++ -std=c++0x -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -Wall -Os -c $<
-
-upload: main.hex
-	avrdude -p $(MCU) -c $(PROGRAMMER_TYPE) -P $(PORT) -b $(BAUD) -U flash:w:main.hex
-
-size : main.elf
-	avr-size -C --mcu=$(MCU) main.elf
-
-hex_size : main.hex
-	avr-size main.hex
+test_clean : makefile.tests
+	make -f makefile.tests clean
