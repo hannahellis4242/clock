@@ -22,3 +22,10 @@ uint8_t BCDNumber::asByte() const
 {
   return units() + 10 * tens() ;
 }
+
+BCDNumber byteToBCDNumber(const uint8_t x)
+{
+  const uint8_t units = x % 10 ;
+  const uint8_t tens = ( x / 10 ) % 10 ;
+  return BCDNumber( units | tens << 4 ) ;
+}

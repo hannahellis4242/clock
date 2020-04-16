@@ -15,4 +15,6 @@ class BCDNumber
     uint8_t tens() const;
     uint8_t asByte() const;
 };
+
+BCDNumber byteToBCDNumber(const uint8_t);
 #endif
