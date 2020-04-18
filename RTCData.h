@@ -18,7 +18,7 @@ private:
     BCDNumber month_ ;
     BCDNumber year_ ;
   public:
-    RTCData() = default ;
+    RTCData() ;
     RTCData(const uint8_t (&xs)[7]);
     RTCData(const Array<uint8_t,7> & xs);
 

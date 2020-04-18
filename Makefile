@@ -7,7 +7,7 @@ clean : makefile.avr makefile.tests
 	make -f makefile.tests clean
 
 upload : makefile.avr
-	make -f upload
+	make -f makefile.avr upload
 
 size : makefile.avr
 	make -f makefile.avr size

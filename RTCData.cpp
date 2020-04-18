@@ -1,5 +1,9 @@
 #include "RTCData.h"
 
+RTCData::RTCData()
+: day_(0),
+  twentyFourHour_(true),
+  pm_(false){}
 
 RTCData::RTCData(const uint8_t (&xs)[7])
 : RTCData( Array< uint8_t , 7 >( xs ) ){}
@@ -74,6 +78,7 @@ Array< uint8_t , 7 > RTCData::convertToArray() const
         hour = hour & 0b11011111 ;
       }
     }
+    out[2]=hour;
   }
   out[3] = day_ ;
   out[4] = date_.raw() ;

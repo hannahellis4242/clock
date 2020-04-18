@@ -4,7 +4,7 @@ BAUD  = 19200
 
 PROGRAMMER_TYPE = avrisp
 
-PORT = /dev/cu.usbmodem14101
+PORT = /dev/cu.usbmodem14201
 
 all: main.hex
 

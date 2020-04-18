@@ -22,7 +22,6 @@ Array< uint8_t , 7 > RealTimeClock::read() const
 
 void RealTimeClock::write( const Array< uint8_t , 7 > & data ) const
 {
-  //as a first pass lets see if we can reset the time
   const uint8_t contRegs = getControlRegister() ;
   setControlRegister( contRegs & 0b010000 );
 
