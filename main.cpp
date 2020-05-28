@@ -1,13 +1,14 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include <stdlib.h>
 
-#include "Display.h"
+#include "LCDDisplay.h"
 #include "RealTimeClock.h"
 #include "RTCData.h"
 #include "Buttons.h"
 #include "spi.h"
 
-void displayTime(const RTCData & td , const Display & disp )
+/*void displayTime(const RTCData & td , const Display & disp )
 {
   disp.raw(0);
   disp.show(td.hours().tens());
@@ -93,10 +94,6 @@ void do_current_time_show( const Buttons & buttons ,
       debug_disp.raw(0x00);
     }
   }
-  /*else
-  {
-    do_current_time_show(buttons,rtc,disp,debug_disp,buttons.read());
-  }*/
 }
 
 uint8_t getManualBinaryValue(const Display & debug_disp,
@@ -261,7 +258,7 @@ RTCData & set_time_mode( RTCData & in ,
     return in ;
   }
   return in ;
-}
+}*/
 
 int main()
 {
@@ -270,131 +267,37 @@ int main()
   //       43210ssk
   //            oi
   DDRB = 0b11111011;
-  PORTB = 0b0010000;
-  const auto disp = Display(&PORTB,3);
-  const auto buttons = Buttons(&PORTB,&PINB,4);
-  const auto rtc = RealTimeClock(&PORTB,&PINB,5);
-  const auto debug_disp = Display(&PORTB,6);
+  PORTB = 0b0001000;
+  const auto disp = LCDDisplay(&PORTB,5);
+  //const auto buttons = Buttons(&PORTB,&PINB,4);
+  const auto rtc = RealTimeClock(&PORTB,&PINB,3);
 
-  RTCData time ;
-
-  disp.raw(0x00);
+  disp.init();
+  disp.clear();
+  disp.setCursor(true,false,false);
+  //disp.writeChar('?');
+  disp.writeStr("tick tick tick.                           I'm a clock.");
+  disp.clear();
   while(true)
   {
-    const uint8_t value = buttons.read() ;
-    if( value == 0x01 )
+    const RTCData time( rtc.read() ) ;
+    //disp.clear();
+    disp.home();
+    //hours
     {
-      //debug mode
-      disp.show(0);
-      _delay_ms(1000); //wait a second so the user has time to press which debug option they want
-      do_debug( buttons , disp , debug_disp , buttons.read() ) ;
+      char h[16];
+      itoa(time.hours().asByte(),h,10);
+      disp.writeStr(h);
     }
-    else if( value == 0x80 )
+    disp.writeChar(':');
+    //minutes
     {
-      //show current time mode
-      disp.show(1);
-      _delay_ms(1000); //wait a second so the user has time to press wihch option they want
-      do_current_time_show(buttons,rtc,disp,debug_disp,buttons.read());
+      char h[16];
+      itoa(time.minutes().asByte(),h,10);
+      disp.writeStr(h);
     }
-    else if( value == 0x40 )
-    {
-      disp.show(2);
-      //in set data mode
-      time = RTCData( rtc.read() ) ;//grab the current time
-      time.setSeconds(0); //reset the seconds to zero
-      _delay_ms(1000); //give user time to select an option
-      time = set_time_mode( time , buttons , debug_disp ) ;
-      _delay_ms(1000); //wait a second before allowing more input
-    }
-    else if( value == 0x20 )
-    {
-      disp.show(3);
-      displayTime(time,disp);
-      _delay_ms(1000);
-      const auto dat = time.convertToArray() ;
-      for( uint8_t i = 0 ; i < dat.size() ; ++i )
-      {
-        debug_disp.raw(dat[i]);
-        _delay_ms(1000);
-        debug_disp.raw(0xff);
-        _delay_ms(500);
-      }
-      debug_disp.raw(0xff);
-      _delay_ms(1000);
-
-    }
-    else if( value == 0x10 )
-    {
-      disp.show(4);
-      debug_disp.raw(0xff);
-      rtc.write(time.convertToArray());
-      debug_disp.raw(0x00);
-    }
-
-    disp.raw(0);
-    debug_disp.raw(0);
-    /*if( value == 0x80 )
-    {
-      for(uint8_t i=0;i<16;++i)
-      {
-        disp.show(i);
-        _delay_ms(200);
-      }
-      disp.raw(0x00);
-    }
-    else if( value == 0x40 )
-    {
-      for(uint8_t i=0;i<16;++i)
-      {
-        disp.show(15-i);
-        _delay_ms(200);
-      }
-      disp.raw(0x00);
-    }
-    else if( value == 0x01 )
-    {
-      displayTime(RTCData(rtc.read()),disp);
-      disp.raw(0x00);
-    }
-    else if( value == 0x02 )
-    {
-      uint8_t value = 1;
-      while( value != 0 )
-      {
-        debug_disp.raw(value);
-        _delay_ms(500);
-        value = value << 1;
-      }
-      debug_disp.raw(0);
-    }
-    else if( value == 0x04 )
-    {
-      debug_disp.raw(rtc.getSecondsByte());
-      debug_disp.raw(0);
-    }
-    else if( value == 0x08 )
-    {
-      debug_disp.raw(rtc.getMinutesByte());
-      debug_disp.raw(0);
-    }
-    else if( value == 0x10 )
-    {
-      debug_disp.raw(rtc.getHoursByte());
-      debug_disp.raw(0);
-    }
-    else if( value == 0x20 )
-    {
-      rtc.write( Array< uint8_t , 7 >() ) ;
-      _delay_ms(1000);
-      debug_disp.raw(0xff);
-      _delay_ms(100);
-      debug_disp.raw(0x00);
-    }
-    else if( value == 0x40 )
-    {
-      debug_disp.raw(rtc.getControlRegister());
-      debug_disp.raw(0);
-    }*/
+    _delay_ms(200);
   }
+
   return 0;
 }
