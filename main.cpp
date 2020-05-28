@@ -1,6 +1,5 @@
 #include <avr/io.h>
 #include <util/delay.h>
-#include <stdlib.h>
 
 #include "LCDDisplay.h"
 #include "RealTimeClock.h"
@@ -260,6 +259,78 @@ RTCData & set_time_mode( RTCData & in ,
   return in ;
 }*/
 
+const constexpr static char digit_lookup[] = {'0','1','2','3','4','5','6','7','8','9'};
+const constexpr static char day_lookup[][3] = {{'M','o','n'},{'T','u','e'},{'W','e','d'},{'T','h','u'},{'F','r','i'},{'S','a','t'},{'S','u','n'}};
+const constexpr static char month_lookup[2][9][3] = {{{'J','a','n'},{'F','e','b'},{'M','a','r'},{'A','p','r'},{'M','a','y'},{'J','u','n'},{'J','u','l'},{'A','u','s'},{'S','e','p'}},
+                                                     {{'O','c','t'},{'N','o','v'},{'D','e','c'},{' ',' ',' '},{' ',' ',' '},{' ',' ',' '},{' ',' ',' '},{' ',' ',' '},{' ',' ',' '}}};
+
+
+static void show_time( const RTCData & time ,
+                       const LCDDisplay & disp )
+{
+  disp.home();
+  //hours
+  {
+    disp.writeChar(digit_lookup[time.hours().tens()]);
+    disp.writeChar(digit_lookup[time.hours().units()]);
+  }
+  disp.writeChar(':');
+  //minutes
+  {
+    disp.writeChar(digit_lookup[time.minutes().tens()]);
+    disp.writeChar(digit_lookup[time.minutes().units()]);
+  }
+  disp.writeChar(':');
+  //seconds
+  {
+    disp.writeChar(digit_lookup[time.seconds().tens()]);
+    disp.writeChar(digit_lookup[time.seconds().units()]);
+  }
+  if( !time.is24() )
+  {
+    disp.writeChar(' ') ;
+    disp.writeChar(time.pm()?'p' : 'a') ;
+    disp.writeChar('m') ;
+  }
+  const constexpr uint8_t chars_per_row = 40 - 8 ;
+  for(uint8_t i = 0 ; i < chars_per_row ; ++i)
+  {
+    disp.writeChar(' ') ;
+  }
+  //day of the week
+  {
+    const uint8_t & day = time.day();
+    for(uint8_t i = 0 ; i < 3 ; ++i )
+    {
+      disp.writeChar(day_lookup[day][i]);
+    }
+  }
+  disp.writeChar(' ');
+  //date number
+  {
+    disp.writeChar(digit_lookup[time.date().tens()]);
+    disp.writeChar(digit_lookup[time.date().units()]);
+  }
+  disp.writeChar(' ');
+  //month
+  {
+    const uint8_t & ten = time.month().tens();
+    const uint8_t & unit = time.month().units();
+    for(uint8_t i = 0 ; i < 3 ; ++i )
+    {
+      disp.writeChar(month_lookup[ten][unit][i]);
+    }
+  }
+  disp.writeChar(' ');
+  //year
+  {
+    disp.writeChar('2');
+    disp.writeChar('0');
+    disp.writeChar(digit_lookup[time.year().tens()]);
+    disp.writeChar(digit_lookup[time.year().units()]);
+  }
+}
+
 int main()
 {
   //       cccccmmc
@@ -275,28 +346,9 @@ int main()
   disp.init();
   disp.clear();
   disp.setCursor(true,false,false);
-  //disp.writeChar('?');
-  disp.writeStr("tick tick tick.                           I'm a clock.");
-  disp.clear();
   while(true)
   {
-    const RTCData time( rtc.read() ) ;
-    //disp.clear();
-    disp.home();
-    //hours
-    {
-      char h[16];
-      itoa(time.hours().asByte(),h,10);
-      disp.writeStr(h);
-    }
-    disp.writeChar(':');
-    //minutes
-    {
-      char h[16];
-      itoa(time.minutes().asByte(),h,10);
-      disp.writeStr(h);
-    }
-    _delay_ms(200);
+    show_time( RTCData(rtc.read()) , disp );
   }
 
   return 0;
